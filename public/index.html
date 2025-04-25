@@ -1,92 +1,164 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Météo Marine - Deauville</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        header {
-            background-color: #0077b6;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        main {
-            padding: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #0077b6;
-            color: white;
-        }
-        footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #0077b6;
-            color: white;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Météo Marine - Deauville</title>
+  <style>
+    :root {
+      --marine: #0077b6;
+      --marine-light: #00b4d8;
+      --bg: #f4f4f9;
+      --white: #fff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(to right, var(--marine), var(--marine-light));
+      color: var(--white);
+      padding: 2rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+
+    main {
+      padding: 2rem 1rem 4rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h2 {
+      color: var(--marine);
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 1.8rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: var(--marine);
+      color: var(--white);
+    }
+
+    tbody tr:hover {
+      background-color: #f0f8ff;
+      transition: background 0.3s ease;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: var(--marine);
+      color: var(--white);
+      position: relative;
+      bottom: 0;
+      width: 100%;
+      box-shadow: 0 -2px 10px var(--shadow);
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Météo Marine - Deauville</h1>
-        <p>Consultez les alertes marines pour la ville de Deauville</p>
-    </header>
-    <main>
-        <h2>Prochaines Alertes</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Heure</th>
-                    <th>Type d'Alerte</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>2023-10-15</td>
-                    <td>14:00</td>
-                    <td>Vague Submersive</td>
-                    <td>Risque de vagues importantes sur le littoral.</td>
-                </tr>
-                <tr>
-                    <td>2023-10-16</td>
-                    <td>09:00</td>
-                    <td>Vent Fort</td>
-                    <td>Rafales de vent atteignant 80 km/h.</td>
-                </tr>
-                <tr>
-                    <td>2023-10-17</td>
-                    <td>18:00</td>
-                    <td>Marée Haute</td>
-                    <td>Marée exceptionnellement haute prévue.</td>
-                </tr>
-            </tbody>
-        </table>
-    </main>
-    <footer>
-        <p>&copy; 2023 Météo Marine Deauville. Tous droits réservés.</p>
-    </footer>
+  <header>
+    <h1>Météo Marine - Deauville</h1>
+    <p>🌊 Consultez les alertes marines à jour pour Deauville</p>
+  </header>
+
+  <main>
+    <h2>⚠️ Prochaine Alerte</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Heure</th>
+          <th>Type d'Alerte</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody id="alertes">
+        <tr><td colspan="4">Chargement en cours...</td></tr>
+      </tbody>
+    </table>
+  </main>
+
+  <footer>
+    <p>&copy; 2023 Météo Marine Deauville 🌦️ - Tous droits réservés.</p>
+  </footer>
+
+  <script>
+    const API_URL = "https://api-meteo.onrender.com/api/index.php";
+
+    async function chargerAlerte() {
+      const tbody = document.getElementById("alertes");
+      tbody.innerHTML = ""; 
+
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        const [date, heure] = data.debut.split(" ");
+
+        const tr = document.createElement("tr");
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = date;
+
+        const tdHeure = document.createElement("td");
+        tdHeure.textContent = heure;
+
+        const tdAlerte = document.createElement("td");
+        tdAlerte.textContent = data.alerte;
+        if (data.alerte.includes("Vague")) tdAlerte.textContent += " 🌊";
+        else if (data.alerte.includes("Vent")) tdAlerte.textContent += " 💨";
+        else tdAlerte.textContent += " ⚠️";
+
+        const tdDescription = document.createElement("td");
+        tdDescription.textContent = data.description;
+
+        tr.appendChild(tdDate);
+        tr.appendChild(tdHeure);
+        tr.appendChild(tdAlerte);
+        tr.appendChild(tdDescription);
+
+        tbody.appendChild(tr);
+
+      } catch (err) {
+        console.error("Erreur API :", err);
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.setAttribute("colspan", "4");
+        td.textContent = "❌ Erreur lors du chargement de l'alerte météo.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", chargerAlerte);
+  </script>
 </body>
 </html>
