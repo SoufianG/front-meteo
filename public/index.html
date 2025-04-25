@@ -4,157 +4,428 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Météo Marine - Deauville</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     :root {
-      --marine: #0077b6;
-      --marine-light: #00b4d8;
-      --bg: #f4f4f9;
-      --white: #fff;
+      --primary: #1e3a8a;
+      --secondary: #0ea5e9;
+      --accent: #0284c7;
+      --bg-light: #f8fafc;
+      --bg-dark: #0f172a;
+      --text-light: #f1f5f9;
+      --text-dark: #334155;
       --shadow: rgba(0, 0, 0, 0.1);
+      --card-bg: #ffffff;
+      --wave-pattern: #dbeafe;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg);
-      color: #333;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.5;
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    header {
-      background: linear-gradient(to right, var(--marine), var(--marine-light));
-      color: var(--white);
-      padding: 2rem 1rem;
+    /* Header avec vagues */
+    .wave-container {
+      position: relative;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--text-light);
+      padding: 3rem 2rem 6rem;
       text-align: center;
-      box-shadow: 0 2px 10px var(--shadow);
+      overflow: hidden;
     }
 
+    .wave-container h1 {
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+      text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .wave-container p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="%23ffffff" /></svg>');
+      background-size: cover;
+    }
+
+    /* Main content */
     main {
-      padding: 2rem 1rem 4rem;
-      max-width: 1000px;
-      margin: auto;
+      flex: 1;
+      padding: 0 1.5rem;
+      max-width: 1100px;
+      margin: -3rem auto 4rem;
+      position: relative;
+      z-index: 10;
     }
 
-    h2 {
-      color: var(--marine);
-      margin-bottom: 1rem;
-      text-align: center;
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px var(--shadow);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      background: linear-gradient(to right, var(--accent), var(--secondary));
+      color: var(--text-light);
+      padding: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .card-header i {
       font-size: 1.8rem;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: var(--white);
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px var(--shadow);
+    .card-body {
+      padding: 2rem;
     }
 
-    th, td {
-      padding: 1rem;
+    /* Alerte Table */
+    .alerte-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .alerte-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 1.5rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .alerte-row:last-child {
+      border-bottom: none;
+    }
+
+    .alerte-label {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .alerte-value {
+      font-size: 1.1rem;
+    }
+
+    .alerte-type {
+      font-weight: 700;
+      color: #e11d48;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alerte-description {
+      line-height: 1.6;
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      gap: 10px;
+    }
+
+    .loading i {
+      animation: spin 1s linear infinite;
+      color: var(--secondary);
+      font-size: 1.5rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Status Card */
+    .status-card {
       text-align: center;
-      border-bottom: 1px solid #eee;
+      padding: 2rem;
     }
 
-    th {
-      background-color: var(--marine);
-      color: var(--white);
+    .status-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
     }
 
-    tbody tr:hover {
-      background-color: #f0f8ff;
-      transition: background 0.3s ease;
+    .status-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
     }
 
+    .status-text {
+      color: #64748b;
+      font-size: 1.1rem;
+    }
+
+    /* Footer */
     footer {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      padding: 2rem 1rem;
       text-align: center;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .footer-links a {
+      color: var(--text-light);
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .social-icons a {
+      color: var(--text-light);
+      font-size: 1.5rem;
+      opacity: 0.8;
+      transition: all 0.2s ease;
+    }
+
+    .social-icons a:hover {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+
+    /* Extra elements */
+    .tag {
+      display: inline-block;
+      background-color: #22c55e;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .error {
+      background-color: #fee2e2;
+      color: #dc2626;
       padding: 1rem;
-      background-color: var(--marine);
-      color: var(--white);
-      position: relative;
-      bottom: 0;
-      width: 100%;
-      box-shadow: 0 -2px 10px var(--shadow);
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .wave-container h1 {
+        font-size: 2rem;
+      }
+      
+      .wave-container p {
+        font-size: 1rem;
+      }
+      
+      .alerte-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Météo Marine - Deauville</h1>
-    <p>🌊 Consultez les alertes marines à jour pour Deauville</p>
+  <header class="wave-container">
+    <h1>Météo Marine Deauville</h1>
+    <p>Consultez en temps réel les alertes météorologiques marines et préparez vos sorties en mer en toute sécurité</p>
+    <div class="wave"></div>
   </header>
 
   <main>
-    <h2>⚠️ Prochaine Alerte</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Heure</th>
-          <th>Type d'Alerte</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody id="alertes">
-        <tr><td colspan="4">Chargement en cours...</td></tr>
-      </tbody>
-    </table>
+    <div class="dashboard">
+      <!-- Alerte Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-exclamation-triangle"></i>
+          Alerte en cours
+        </div>
+        <div class="card-body">
+          <div id="alerte-content">
+            <div class="loading">
+              <i class="fas fa-spinner"></i>
+              <span>Chargement des données...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-info-circle"></i>
+          Statut du service
+        </div>
+        <div class="card-body">
+          <div class="status-card">
+            <div class="status-icon">
+              <i class="fas fa-broadcast-tower"></i>
+            </div>
+            <h3 class="status-title">Service actif</h3>
+            <p class="status-text">Nos systèmes de surveillance météo fonctionnent normalement et transmettent les données en temps réel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer>
-    <p>&copy; 2023 Météo Marine Deauville 🌦️ - Tous droits réservés.</p>
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="#">Accueil</a>
+        <a href="#">À propos</a>
+        <a href="#">Services</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin"></i></a>
+      </div>
+      <p>&copy; 2023-2025 Météo Marine Deauville - Tous droits réservés</p>
+    </div>
   </footer>
 
   <script>
     const API_URL = "https://api-meteo.onrender.com/api/index.php";
 
     async function chargerAlerte() {
-      const tbody = document.getElementById("alertes");
-      tbody.innerHTML = ""; 
-
+      const alerteContainer = document.getElementById("alerte-content");
+      
       try {
         const res = await fetch(API_URL);
         const data = await res.json();
 
+        if (!data || !data.debut) {
+          throw new Error("Données d'alerte invalides");
+        }
+
         const [date, heure] = data.debut.split(" ");
-
-        const tr = document.createElement("tr");
-
-        const tdDate = document.createElement("td");
-        tdDate.textContent = date;
-
-        const tdHeure = document.createElement("td");
-        tdHeure.textContent = heure;
-
-        const tdAlerte = document.createElement("td");
-        tdAlerte.textContent = data.alerte;
-        if (data.alerte.includes("Vague")) tdAlerte.textContent += " 🌊";
-        else if (data.alerte.includes("Vent")) tdAlerte.textContent += " 💨";
-        else tdAlerte.textContent += " ⚠️";
-
-        const tdDescription = document.createElement("td");
-        tdDescription.textContent = data.description;
-
-        tr.appendChild(tdDate);
-        tr.appendChild(tdHeure);
-        tr.appendChild(tdAlerte);
-        tr.appendChild(tdDescription);
-
-        tbody.appendChild(tr);
+        
+        // Définir l'icône appropriée selon le type d'alerte
+        let alerteIcon = "fas fa-exclamation-circle";
+        if (data.alerte.includes("Vague")) alerteIcon = "fas fa-water";
+        else if (data.alerte.includes("Vent")) alerteIcon = "fas fa-wind";
+        
+        // Créer le HTML pour l'alerte
+        const alerteHTML = `
+          <div class="alerte-info">
+            <div class="alerte-row">
+              <div class="alerte-label">Date</div>
+              <div class="alerte-value">${date}</div>
+            </div>
+            <div class="alerte-row">
+              <div class="alerte-label">Heure</div>
+              <div class="alerte-value">${heure}</div>
+            </div>
+            <div class="alerte-row">
+              <div class="alerte-label">Type</div>
+              <div class="alerte-type">
+                <i class="${alerteIcon}"></i>
+                ${data.alerte}
+                <span class="tag">Actif</span>
+              </div>
+            </div>
+            <div class="alerte-row">
+              <div class="alerte-label">Description</div>
+              <div class="alerte-description">${data.description}</div>
+            </div>
+          </div>
+        `;
+        
+        alerteContainer.innerHTML = alerteHTML;
 
       } catch (err) {
         console.error("Erreur API :", err);
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.setAttribute("colspan", "4");
-        td.textContent = "❌ Erreur lors du chargement de l'alerte météo.";
-        tr.appendChild(td);
-        tbody.appendChild(tr);
+        alerteContainer.innerHTML = `
+          <div class="error">
+            <i class="fas fa-exclamation-circle"></i>
+            Impossible de charger les données météo. Veuillez réessayer ultérieurement.
+          </div>
+        `;
       }
     }
 
